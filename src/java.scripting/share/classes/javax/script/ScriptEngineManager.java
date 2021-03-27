@@ -266,16 +266,13 @@ public class ScriptEngineManager  {
             } catch (Exception exp) {
                 if (DEBUG) exp.printStackTrace();
             }
-            if (values == null) continue;
-            for (String value : values) {
-                if (selector.equals(value)) {
-                    try {
-                        ScriptEngine engine = spi.getScriptEngine();
-                        engine.setBindings(getBindings(), ScriptContext.GLOBAL_SCOPE);
-                        return engine;
-                    } catch (Exception exp) {
-                        if (DEBUG) exp.printStackTrace();
-                    }
+            if (values != null && values.contains(selector)) {
+                try {
+                    ScriptEngine engine = spi.getScriptEngine();
+                    engine.setBindings(getBindings(), ScriptContext.GLOBAL_SCOPE);
+                    return engine;
+                } catch (Exception exp) {
+                    if (DEBUG) exp.printStackTrace();
                 }
             }
         }
