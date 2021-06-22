@@ -3245,6 +3245,64 @@ public:
     f(pattern, 9, 5), f(0b0, 4), prf(pd, 0);
   }
 
+// SVE integer compare vector (wide-element variants are not included)
+#define INSN(NAME, cond)                                                                          \
+  void NAME(PRegister Pd, SIMD_RegVariant T, PRegister Pg, FloatRegister Zn, FloatRegister Zm)  { \
+    starti;                                                                                       \
+    assert(T != Q, "invalid size");                                                               \
+    f(0b00100100, 31, 24), f(T, 23, 22), f(0, 21), rf(Zm, 16), f((cond >> 1) & 7, 15, 13);        \
+    pgrf(Pg, 10), rf(Zn, 5), f(cond & 1, 4), prf(Pd, 0);                                          \
+  }
+
+  INSN(sve_cmpeq, 0b1010);
+  INSN(sve_cmpne, 0b1011);
+  INSN(sve_cmpge, 0b1000);
+  INSN(sve_cmpgt, 0b1001);
+#undef INSN
+
+// SVE 64-bit while[cond] (32-bit variants are not included)
+#define INSN(NAME, decode)                                                \
+  void NAME(PRegister Pd, SIMD_RegVariant T, Register Rn, Register Rm) {  \
+    starti;                                                               \
+    assert(T != Q, "invalid register variant");                           \
+    f(0b00100101, 31, 24), f(T, 23, 22), f(1, 21),                        \
+    zrf(Rm, 16), f(0, 15, 13), f(1, 12), f(decode >> 1, 11, 10),          \
+    zrf(Rn, 5), f(decode & 1, 4), prf(Pd, 0);                             \
+  }
+
+  INSN(sve_whilelt, 0b010);
+  INSN(sve_whilele, 0b011);
+  INSN(sve_whilelo, 0b110);
+  INSN(sve_whilels, 0b111);
+#undef INSN
+
+  void sve_brka(PRegister pd, PRegister pg, PRegister pn, bool isMerge) {
+    starti;
+    f(0b00100101, 31, 24), f(0b00, 23, 22), f(0b01000001, 21, 14),
+    prf(pg, 10), f(0b0, 9), prf(pn, 5), f(isMerge ? 1 : 0, 4), prf(pd, 0);
+  }
+
+// SVE cnt[b|h|w|d]
+#define INSN(NAME, TYPE)                                                             \
+  void NAME(Register Xdn, unsigned imm4 = 1, int pattern = 0b11111) {                \
+    starti;                                                                          \
+    f(0b00000100, 31, 24), f(TYPE, 23, 22), f(0b10, 21, 20);                         \
+    f(imm4 - 1, 19, 16), f(0b11100, 15, 11), f(0, 10), f(pattern, 9, 5), rf(Xdn, 0); \
+  }
+
+  INSN(sve_cntb, B);
+  INSN(sve_cnth, H);
+  INSN(sve_cntw, S);
+  INSN(sve_cntd, D);
+#undef INSN
+
+  void sve_incp(const Register rd, SIMD_RegVariant T, PRegister pg) {
+    starti;
+    assert(T != Q, "invalid size");
+    f(0b00100101, 31, 24), f(T, 23, 22), f(0b1011001000100, 21, 9),
+    prf(pg, 5), rf(rd, 0);
+  }
+
   Assembler(CodeBuffer* code) : AbstractAssembler(code) {
   }
 

@@ -5457,6 +5457,15 @@ operand vRegD_V31()
   interface(REG_INTER);
 %}
 
+operand pReg()
+%{
+  constraint(ALLOC_IN_RC(pr_reg));
+  match(RegVectMask);
+  op_cost(0);
+  format %{ %}
+  interface(REG_INTER);
+%}
+
 operand pRegGov()
 %{
   constraint(ALLOC_IN_RC(gov_pr));
@@ -16627,11 +16636,11 @@ instruct string_indexof_conUL(iRegP_R1 str1, iRegI_R4 cnt1, iRegP_R3 str2,
 %}
 
 instruct string_indexof_char(iRegP_R1 str1, iRegI_R2 cnt1, iRegI_R3 ch,
-                              iRegI_R0 result, iRegINoSp tmp1, iRegINoSp tmp2,
-                              iRegINoSp tmp3, rFlagsReg cr)
+                             iRegI_R0 result, iRegINoSp tmp1, iRegINoSp tmp2,
+                             iRegINoSp tmp3, rFlagsReg cr)
 %{
   match(Set result (StrIndexOfChar (Binary str1 cnt1) ch));
-  predicate(((StrIndexOfCharNode*)n)->encoding() == StrIntrinsicNode::U);
+  predicate((UseSVE == 0) && (((StrIndexOfCharNode*)n)->encoding() == StrIntrinsicNode::U));
   effect(USE_KILL str1, USE_KILL cnt1, USE_KILL ch,
          TEMP tmp1, TEMP tmp2, TEMP tmp3, KILL cr);
 
@@ -16645,12 +16654,30 @@ instruct string_indexof_char(iRegP_R1 str1, iRegI_R2 cnt1, iRegI_R3 ch,
   ins_pipe(pipe_class_memory);
 %}
 
+instruct string_indexof_char_sve(iRegP_R1 str1, iRegI_R2 cnt1, iRegI_R3 ch,
+                                 iRegI_R0 result, vReg ztmp1, vReg ztmp2,
+                                 pRegGov pgtmp, pReg ptmp, rFlagsReg cr)
+%{
+  match(Set result (StrIndexOfChar (Binary str1 cnt1) ch));
+  predicate((UseSVE > 0) && (((StrIndexOfCharNode*)n)->encoding() == StrIntrinsicNode::U));
+  effect(TEMP ztmp1, TEMP ztmp2, TEMP pgtmp, TEMP ptmp, KILL cr);
+
+  format %{ "StringUTF16 IndexOf char[] $str1,$cnt1,$ch -> $result # use sve" %}
+
+  ins_encode %{
+    __ string_indexof_char_sve($str1$$Register, $cnt1$$Register, $ch$$Register, $result$$Register,
+                               as_FloatRegister($ztmp1$$reg), as_FloatRegister($ztmp2$$reg),
+                               as_PRegister($pgtmp$$reg), as_PRegister($ptmp$$reg), false /* isL */);
+  %}
+  ins_pipe(pipe_class_memory);
+%}
+
 instruct stringL_indexof_char(iRegP_R1 str1, iRegI_R2 cnt1, iRegI_R3 ch,
                               iRegI_R0 result, iRegINoSp tmp1, iRegINoSp tmp2,
                               iRegINoSp tmp3, rFlagsReg cr)
 %{
   match(Set result (StrIndexOfChar (Binary str1 cnt1) ch));
-  predicate(((StrIndexOfCharNode*)n)->encoding() == StrIntrinsicNode::L);
+  predicate((UseSVE == 0) && (((StrIndexOfCharNode*)n)->encoding() == StrIntrinsicNode::L));
   effect(USE_KILL str1, USE_KILL cnt1, USE_KILL ch,
          TEMP tmp1, TEMP tmp2, TEMP tmp3, KILL cr);
 
@@ -16658,8 +16685,26 @@ instruct stringL_indexof_char(iRegP_R1 str1, iRegI_R2 cnt1, iRegI_R3 ch,
 
   ins_encode %{
     __ stringL_indexof_char($str1$$Register, $cnt1$$Register, $ch$$Register,
-                           $result$$Register, $tmp1$$Register, $tmp2$$Register,
-                           $tmp3$$Register);
+                            $result$$Register, $tmp1$$Register, $tmp2$$Register,
+                            $tmp3$$Register);
+  %}
+  ins_pipe(pipe_class_memory);
+%}
+
+instruct stringL_indexof_char_sve(iRegP_R1 str1, iRegI_R2 cnt1, iRegI_R3 ch,
+                                  iRegI_R0 result, vReg ztmp1, vReg ztmp2,
+                                  pRegGov pgtmp, pReg ptmp, rFlagsReg cr)
+%{
+  match(Set result (StrIndexOfChar (Binary str1 cnt1) ch));
+  predicate((UseSVE > 0) && (((StrIndexOfCharNode*)n)->encoding() == StrIntrinsicNode::L));
+  effect(TEMP ztmp1, TEMP ztmp2, TEMP pgtmp, TEMP ptmp, KILL cr);
+
+  format %{ "StringLatin1 IndexOf char[] $str1,$cnt1,$ch -> $result # use sve" %}
+
+  ins_encode %{
+    __ string_indexof_char_sve($str1$$Register, $cnt1$$Register, $ch$$Register, $result$$Register,
+                               as_FloatRegister($ztmp1$$reg), as_FloatRegister($ztmp2$$reg),
+                               as_PRegister($pgtmp$$reg), as_PRegister($ptmp$$reg), true /* isL */);
   %}
   ins_pipe(pipe_class_memory);
 %}
