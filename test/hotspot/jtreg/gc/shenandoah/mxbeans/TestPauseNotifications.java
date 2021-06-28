@@ -149,8 +149,10 @@ public class TestPauseNotifications {
         }
 
         // Wait until notifications start arriving, and then wait some more
-        // to catch the ones arriving late.
-        while (pausesDuration.get() == 0) {
+        // to catch the ones arriving late. Wait at most 60 seconds until the
+        // notifications start to arrive.
+        int tries = 0;
+        while (tries++ < 60 && pausesDuration.get() == 0) {
             Thread.sleep(1000);
         }
         Thread.sleep(5000);
