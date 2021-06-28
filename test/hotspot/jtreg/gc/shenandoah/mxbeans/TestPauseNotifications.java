@@ -157,8 +157,10 @@ public class TestPauseNotifications {
         }
 
         // Look at test timeout to figure out how long we can wait without breaking into timeout.
+        // Default to 1/4 of the remaining time in 1s steps.
+        final long STEP_MS = 1000;
         long spentTime = System.currentTimeMillis() - startTime;
-        long maxTries = (Utils.adjustTimeout(Utils.DEFAULT_TEST_TIMEOUT) - spentTime) / 1000 / 2;
+        long maxTries = (Utils.adjustTimeout(Utils.DEFAULT_TEST_TIMEOUT) - spentTime) / STEP_MS / 4;
 
         long actualPauses = 0;
         long actualCycles = 0;
@@ -177,7 +179,7 @@ public class TestPauseNotifications {
                 actualCycles = cyclesDuration.get();
                 break;
             }
-            Thread.sleep(1000);
+            Thread.sleep(STEP_MS);
         }
 
         String msg = "Pauses expected = [" + minExpected + "; +inf], actual = " + actualPauses + "\n" +
