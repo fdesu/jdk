@@ -25,6 +25,7 @@
 /*
  * @test TestPauseNotifications
  * @summary Check that MX notifications are reported for all cycles
+ * @library /test/lib /
  * @requires vm.gc.Shenandoah
  *
  * @run main/othervm -Xmx128m -XX:+UnlockDiagnosticVMOptions -XX:+UnlockExperimentalVMOptions
@@ -41,6 +42,7 @@
 /*
  * @test TestPauseNotifications
  * @summary Check that MX notifications are reported for all cycles
+ * @library /test/lib /
  * @requires vm.gc.Shenandoah
  *
  * @run main/othervm -Xmx128m -XX:+UnlockDiagnosticVMOptions -XX:+UnlockExperimentalVMOptions
@@ -51,6 +53,7 @@
 /*
  * @test TestPauseNotifications
  * @summary Check that MX notifications are reported for all cycles
+ * @library /test/lib /
  * @requires vm.gc.Shenandoah
  *
  * @run main/othervm -Xmx128m -XX:+UnlockDiagnosticVMOptions -XX:+UnlockExperimentalVMOptions
@@ -61,6 +64,7 @@
 /*
  * @test TestPauseNotifications
  * @summary Check that MX notifications are reported for all cycles
+ * @library /test/lib /
  * @requires vm.gc.Shenandoah
  *
  * @run main/othervm -Xmx128m -XX:+UnlockDiagnosticVMOptions -XX:+UnlockExperimentalVMOptions
@@ -71,6 +75,7 @@
 /*
  * @test TestPauseNotifications
  * @summary Check that MX notifications are reported for all cycles
+ * @library /test/lib /
  * @requires vm.gc.Shenandoah
  *
  * @run main/othervm -Xmx128m -XX:+UnlockDiagnosticVMOptions -XX:+UnlockExperimentalVMOptions
@@ -81,6 +86,7 @@
 /*
  * @test TestPauseNotifications
  * @summary Check that MX notifications are reported for all cycles
+ * @library /test/lib /
  * @requires vm.gc.Shenandoah
  *
  * @run main/othervm -Xmx128m -XX:+UnlockDiagnosticVMOptions -XX:+UnlockExperimentalVMOptions
@@ -98,6 +104,8 @@ import javax.management.*;
 import java.lang.management.*;
 import javax.management.openmbean.*;
 
+import jdk.test.lib.Utils;
+
 import com.sun.management.GarbageCollectionNotificationInfo;
 
 public class TestPauseNotifications {
@@ -108,6 +116,8 @@ public class TestPauseNotifications {
     static volatile Object sink;
 
     public static void main(String[] args) throws Exception {
+        final long startTime = System.currentTimeMillis();
+
         final AtomicLong pausesDuration = new AtomicLong();
         final AtomicLong cyclesDuration = new AtomicLong();
 
@@ -117,9 +127,7 @@ public class TestPauseNotifications {
                 if (n.getType().equals(GarbageCollectionNotificationInfo.GARBAGE_COLLECTION_NOTIFICATION)) {
                     GarbageCollectionNotificationInfo info = GarbageCollectionNotificationInfo.from((CompositeData) n.getUserData());
 
-                    System.out.println(info.getGcInfo().toString());
-                    System.out.println(info.getGcName());
-                    System.out.println();
+                    System.out.println("Received: " + info.getGcName());
 
                     long d = info.getGcInfo().getDuration();
 
@@ -148,46 +156,38 @@ public class TestPauseNotifications {
             sink = new int[size];
         }
 
-        // Wait until notifications start arriving, and then wait some more
-        // to catch the ones arriving late. Wait at most 60 seconds until the
-        // notifications start to arrive.
-        int tries = 0;
-        while (tries++ < 60 && pausesDuration.get() == 0) {
+        // Look at test timeout to figure out how long we can wait without breaking into timeout.
+        long spentTime = System.currentTimeMillis() - startTime;
+        long maxTries = (Utils.adjustTimeout(Utils.DEFAULT_TEST_TIMEOUT) - spentTime) / 1000 / 2;
+
+        long actualPauses = 0;
+        long actualCycles = 0;
+
+        // Wait until enough notifications are accrued to match minimum boundary.
+        long minExpected = 1;
+
+        long tries = 0;
+        while (tries++ < maxTries) {
+            actualPauses = pausesDuration.get();
+            actualCycles = cyclesDuration.get();
+            if (minExpected <= actualPauses && minExpected <= actualCycles) {
+                // Wait a little bit to catch the lingering notifications.
+                Thread.sleep(5000);
+                actualPauses = pausesDuration.get();
+                actualCycles = cyclesDuration.get();
+                break;
+            }
             Thread.sleep(1000);
         }
-        Thread.sleep(5000);
 
-        long pausesActual = pausesDuration.get();
-        long cyclesActual = cyclesDuration.get();
+        String msg = "Pauses expected = [" + minExpected + "; +inf], actual = " + actualPauses + "\n" +
+                     "Cycles expected = [" + minExpected + "; +inf], actual = " + actualCycles + "\n" +
+                     "Pauses duration (" + actualPauses + ") is expected to be smaller than cycles duration (" + actualCycles + ")";
 
-        long minExpected = 1;
-        long maxExpected = Long.MAX_VALUE;
-
-        {
-            String msg = "Pauses expected = [" + minExpected + "; " + maxExpected + "], actual = " + pausesActual;
-            if (minExpected <= pausesActual && pausesActual <= maxExpected) {
-                System.out.println(msg);
-            } else {
-                throw new IllegalStateException(msg);
-            }
-        }
-
-        {
-            String msg = "Cycles expected = [" + minExpected + "; " + maxExpected + "], actual = " + cyclesActual;
-            if (minExpected <= cyclesActual && cyclesActual <= maxExpected) {
-                System.out.println(msg);
-            } else {
-                throw new IllegalStateException(msg);
-            }
-        }
-
-        {
-            String msg = "Cycle duration (" + cyclesActual + "), pause duration (" + pausesActual + ")";
-            if (pausesActual <= cyclesActual) {
-                System.out.println(msg);
-            } else {
-                throw new IllegalStateException(msg);
-            }
+        if (minExpected <= actualPauses && minExpected <= actualCycles && actualPauses <= actualCycles) {
+            System.out.println(msg);
+        } else {
+            throw new IllegalStateException(msg);
         }
     }
 }
