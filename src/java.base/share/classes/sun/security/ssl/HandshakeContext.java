@@ -311,7 +311,7 @@ abstract class HandshakeContext implements ConnectionContext {
             if (enabledSSL20Hello) {
                 protocols.add(ProtocolVersion.SSL20Hello);
             }
-            Collections.sort(protocols);
+            protocols.sort(null);
         }
 
         return Collections.unmodifiableList(protocols);

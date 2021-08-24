@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, 2016, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2005, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -1067,7 +1067,7 @@ public abstract class DefaultRowSorter<M, I> extends RowSorter<M> {
 
         // Insert newly added rows into viewToModel
         if (added.size() > 0) {
-            Collections.sort(added);
+            added.sort(null);
             Row[] lastViewToModel = viewToModel;
             viewToModel = new Row[viewToModel.length + added.size()];
             insertInOrder(added, lastViewToModel);
@@ -1201,7 +1201,7 @@ public abstract class DefaultRowSorter<M, I> extends RowSorter<M> {
             }
 
             // Sort the updated rows
-            Collections.sort(updated);
+            updated.sort(null);
 
             // Build the intermediary array: the array of
             // viewToModel without the updated rows.

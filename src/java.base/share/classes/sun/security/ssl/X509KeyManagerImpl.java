@@ -407,7 +407,7 @@ final class X509KeyManagerImpl extends X509ExtendedKeyManager
             }
             return null;
         }
-        Collections.sort(allResults);
+        allResults.sort(null);
         if (SSLLogger.isOn && SSLLogger.isOn("keymanager")) {
             SSLLogger.fine(
                     "KeyMgr: no good matching key found, "
@@ -452,7 +452,7 @@ final class X509KeyManagerImpl extends X509ExtendedKeyManager
             }
             return null;
         }
-        Collections.sort(allResults);
+        allResults.sort(null);
         if (SSLLogger.isOn && SSLLogger.isOn("keymanager")) {
             SSLLogger.fine("KeyMgr: getting aliases", allResults);
         }

@@ -25,11 +25,8 @@
 
 package javax.naming.ldap;
 
-import java.util.Iterator;
-import java.util.NoSuchElementException;
 import java.util.ArrayList;
 import java.util.Locale;
-import java.util.Collections;
 
 import javax.naming.InvalidNameException;
 import javax.naming.directory.BasicAttributes;
@@ -244,7 +241,7 @@ public class Rdn implements Serializable, Comparable<Object> {
 
     void sort() {
         if (entries.size() > 1) {
-            Collections.sort(entries);
+            entries.sort(null);
         }
     }
 

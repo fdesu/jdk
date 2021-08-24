@@ -275,7 +275,7 @@ public final class DebugSettings {
         }
 
         // sort traces list so file-level traces will be before line-level ones
-        Collections.sort(traces);
+        traces.sort(null);
 
         //
         // Setup the trace points

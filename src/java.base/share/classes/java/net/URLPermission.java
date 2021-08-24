@@ -219,11 +219,11 @@ public final class URLPermission extends Permission {
         }
 
         List<String> l = normalizeMethods(methods);
-        Collections.sort(l);
+        l.sort(null);
         this.methods = Collections.unmodifiableList(l);
 
         l = normalizeHeaders(headers);
-        Collections.sort(l);
+        l.sort(null);
         this.requestHeaders = Collections.unmodifiableList(l);
 
         this.actions = actions();

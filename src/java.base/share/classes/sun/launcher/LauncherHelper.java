@@ -65,7 +65,6 @@ import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.text.Normalizer;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -220,7 +219,7 @@ public final class LauncherHelper {
         ostream.println(PROP_SETTINGS);
         List<String> sortedPropertyKeys = new ArrayList<>();
         sortedPropertyKeys.addAll(p.stringPropertyNames());
-        Collections.sort(sortedPropertyKeys);
+        sortedPropertyKeys.sort(null);
         for (String x : sortedPropertyKeys) {
             printPropertyValue(x, p.getProperty(x));
         }

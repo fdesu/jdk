@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, 2014, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2005, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -784,7 +784,7 @@ public class TextComponentPrintable implements CountingPrintable {
         /*
          * Merge all intersected segments.
          */
-        Collections.sort(documentMetrics);
+        documentMetrics.sort(null);
         int yStart = Integer.MIN_VALUE;
         int yEnd = Integer.MIN_VALUE;
         for (IntegerSegment segment : documentMetrics) {
