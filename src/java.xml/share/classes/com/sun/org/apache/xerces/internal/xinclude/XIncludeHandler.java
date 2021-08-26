@@ -20,6 +20,8 @@
 
 package com.sun.org.apache.xerces.internal.xinclude;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import com.sun.org.apache.xerces.internal.impl.Constants;
 import com.sun.org.apache.xerces.internal.impl.XMLEntityManager;
 import com.sun.org.apache.xerces.internal.impl.XMLErrorReporter;
@@ -3172,14 +3174,8 @@ public class XIncludeHandler
             }
 
             // get UTF-8 bytes for the remaining sub-string
-            byte[] bytes = null;
+            byte[] bytes = href.substring(i).getBytes(UTF_8);
             byte b;
-            try {
-                bytes = href.substring(i).getBytes("UTF-8");
-            } catch (java.io.UnsupportedEncodingException e) {
-                // should never happen
-                return href;
-            }
             len = bytes.length;
 
             // for each byte

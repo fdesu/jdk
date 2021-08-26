@@ -20,7 +20,8 @@
 
 package com.sun.org.apache.xerces.internal.impl ;
 
-import com.sun.org.apache.xerces.internal.impl.io.ASCIIReader;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import com.sun.org.apache.xerces.internal.impl.io.UCSReader;
 import com.sun.org.apache.xerces.internal.impl.io.UTF16Reader;
 import com.sun.org.apache.xerces.internal.impl.io.UTF8Reader;
@@ -1996,14 +1997,8 @@ public class XMLEntityManager implements XMLComponent, XMLEntityResolver {
         // we saw some non-ascii character
         if (i < len) {
             // get UTF-8 bytes for the remaining sub-string
-            byte[] bytes = null;
+            byte[] bytes = userDir.substring(i).getBytes(UTF_8);
             byte b;
-            try {
-                bytes = userDir.substring(i).getBytes("UTF-8");
-            } catch (java.io.UnsupportedEncodingException e) {
-                // should never happen
-                return new URI("file", "", userDir, null, null);
-            }
             len = bytes.length;
 
             // for each byte

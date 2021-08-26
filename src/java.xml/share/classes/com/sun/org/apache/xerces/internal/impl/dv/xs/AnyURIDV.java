@@ -21,6 +21,8 @@
 
 package com.sun.org.apache.xerces.internal.impl.dv.xs;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import com.sun.org.apache.xerces.internal.impl.dv.InvalidDatatypeValueException;
 import com.sun.org.apache.xerces.internal.util.URI;
 import com.sun.org.apache.xerces.internal.impl.dv.ValidationContext;
@@ -128,14 +130,8 @@ public class AnyURIDV extends TypeValidator {
         // we saw some non-ascii character
         if (i < len) {
             // get UTF-8 bytes for the remaining sub-string
-            byte[] bytes = null;
+            byte[] bytes = anyURI.substring(i).getBytes(UTF_8);
             byte b;
-            try {
-                bytes = anyURI.substring(i).getBytes("UTF-8");
-            } catch (java.io.UnsupportedEncodingException e) {
-                // should never happen
-                return anyURI;
-            }
             len = bytes.length;
 
             // for each byte
